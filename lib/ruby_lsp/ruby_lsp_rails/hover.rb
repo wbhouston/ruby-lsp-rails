@@ -28,16 +28,18 @@ module RubyLsp
       sig do
         params(
           client: RailsClient,
+          tables: T::Hash[String, Prism::Location],
           nesting: T::Array[String],
           index: RubyIndexer::Index,
           dispatcher: Prism::Dispatcher,
         ).void
       end
-      def initialize(client, nesting, index, dispatcher)
+      def initialize(client, tables, nesting, index, dispatcher)
         super(dispatcher)
 
         @_response = T.let(nil, ResponseType)
         @client = client
+        @tables = tables
         @nesting = nesting
         @index = index
         dispatcher.register(self, :on_constant_path_node_enter, :on_constant_read_node_enter, :on_call_node_enter)
@@ -93,6 +95,7 @@ module RubyLsp
         schema_file = model[:schema_file]
         content = +""
         content << "[Schema](#{URI::Generic.build(scheme: "file", path: schema_file)})\n\n" if schema_file
+        content << "[Some random testing] #{@tables['accounts'].start_line}\n"
         content << model[:columns].map { |name, type| "**#{name}**: #{type}\n" }.join("\n")
         content
       end
