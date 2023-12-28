@@ -93,9 +93,16 @@ module RubyLsp
         return if model.nil?
 
         schema_file = model[:schema_file]
+        location = @tables[model[:schema_table]]
+        fragment = "L#{location.start_line},#{location.start_column}-"\
+          "#{location.end_line},#{location.end_column}" if location
+        schema_uri = URI::Generic.build(
+          scheme: "file",
+          path: schema_file,
+          fragment: fragment
+        )
         content = +""
-        content << "[Schema](#{URI::Generic.build(scheme: "file", path: schema_file)})\n\n" if schema_file
-        content << "[Some random testing] #{@tables['accounts'].start_line}\n"
+        content << "[Schema](#{schema_uri})\n\n" if schema_uri
         content << model[:columns].map { |name, type| "**#{name}**: #{type}\n" }.join("\n")
         content
       end
