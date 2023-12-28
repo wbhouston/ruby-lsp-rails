@@ -28,18 +28,18 @@ module RubyLsp
       sig do
         params(
           client: RailsClient,
-          tables: T::Hash[String, Prism::Location],
+          schema_collector: SchemaCollector,
           nesting: T::Array[String],
           index: RubyIndexer::Index,
           dispatcher: Prism::Dispatcher,
         ).void
       end
-      def initialize(client, tables, nesting, index, dispatcher)
+      def initialize(client, schema_collector, nesting, index, dispatcher)
         super(dispatcher)
 
         @_response = T.let(nil, ResponseType)
         @client = client
-        @tables = tables
+        @schema_collector = schema_collector
         @nesting = nesting
         @index = index
         dispatcher.register(self, :on_constant_path_node_enter, :on_constant_read_node_enter, :on_call_node_enter)
@@ -93,7 +93,7 @@ module RubyLsp
         return if model.nil?
 
         schema_file = model[:schema_file]
-        location = @tables[model[:schema_table]]
+        location = @schema_collector.tables[model[:schema_table]]
         fragment = "L#{location.start_line},#{location.start_column}-"\
           "#{location.end_line},#{location.end_column}" if location
         schema_uri = URI::Generic.build(
