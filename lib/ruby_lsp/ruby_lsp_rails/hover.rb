@@ -93,14 +93,16 @@ module RubyLsp
         return if model.nil?
 
         schema_file = model[:schema_file]
-        location = @schema_collector.tables[model[:schema_table]]
-        fragment = "L#{location.start_line},#{location.start_column}-"\
-          "#{location.end_line},#{location.end_column}" if location
-        schema_uri = URI::Generic.build(
-          scheme: "file",
-          path: schema_file,
-          fragment: fragment
-        )
+        if schema_file
+          location = @schema_collector.tables[model[:schema_table]]
+          fragment = "L#{location.start_line},#{location.start_column}-"\
+            "#{location.end_line},#{location.end_column}" if location
+          schema_uri = URI::Generic.build(
+            scheme: "file",
+            path: schema_file,
+            fragment: fragment
+          )
+        end
         content = +""
         content << "[Schema](#{schema_uri})\n\n" if schema_uri
         content << model[:columns].map { |name, type| "**#{name}**: #{type}\n" }.join("\n")

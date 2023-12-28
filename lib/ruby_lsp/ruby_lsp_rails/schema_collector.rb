@@ -27,17 +27,15 @@ module RubyLsp
 
       sig { void }
       def visit_call_node(node)
-        unless node.message == 'create_table'
-          super
-          return
+        if node.message == 'create_table'
+          first_argument = node.arguments&.arguments&.first
+
+          if first_argument&.is_a?(Prism::StringNode)
+            @tables[first_argument.content] = node.location
+          end
         end
 
-        arguments = node.arguments&.arguments
-        return unless arguments
-
-        first_argument = arguments.first
-        return unless first_argument.is_a?(Prism::StringNode)
-        @tables[arguments.first.content] = node.location
+        super
       end
 
       private
